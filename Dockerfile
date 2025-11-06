@@ -1,5 +1,6 @@
 FROM node:20-bullseye
 
+# Cài Chromium dependencies
 RUN apt-get update && apt-get install -y \
   ca-certificates fonts-liberation libappindicator3-1 libasound2 \
   libatk1.0-0 libc6 libcairo2 libdbus-1-3 libexpat1 libfontconfig1 \
@@ -12,7 +13,8 @@ COPY package*.json ./
 RUN npm ci --production
 COPY . .
 
+# Tạo folder chrome-profile
 RUN mkdir -p /data/chrome-profile
-VOLUME ["/data/chrome-profile"]
 ENV USER_DATA_DIR=/data/chrome-profile
+
 CMD ["node","zalo-bot.js"]
