@@ -36,7 +36,7 @@ function timestampForFile() {
   const userDataDir = path.join(__dirname, 'chrome-profile');
 
   const browser = await puppeteer.launch({
-    headless: True, // hiện Chrome để quét QR
+    headless: true, // hiện Chrome để quét QR
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
     userDataDir
   });

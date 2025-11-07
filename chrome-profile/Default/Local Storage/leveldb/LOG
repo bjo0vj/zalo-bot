@@ -1,5 +1,5 @@
-2025/11/07-11:08:27.146 11f8 Reusing MANIFEST C:\Users\phatt\Desktop\zalo\chrome-profile\Default\Local Storage\leveldb/MANIFEST-000001
-2025/11/07-11:08:27.150 11f8 Recovering log #3
-2025/11/07-11:08:27.153 11f8 Level-0 table #3: started
-2025/11/07-11:08:27.175 11f8 Level-0 table #3: 130535 bytes OK
-2025/11/07-11:08:27.186 11f8 Delete type=0 #3
+2025/11/07-11:23:10.376 4a20 Reusing MANIFEST C:\Users\phatt\Desktop\zalo\chrome-profile\Default\Local Storage\leveldb/MANIFEST-000001
+2025/11/07-11:23:10.416 4a20 Recovering log #4
+2025/11/07-11:23:10.418 4a20 Level-0 table #6: started
+2025/11/07-11:23:10.432 4a20 Level-0 table #6: 72263 bytes OK
+2025/11/07-11:23:10.441 4a20 Delete type=0 #4
