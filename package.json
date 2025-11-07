@@ -4,21 +4,21 @@
   "main": "zalo-bot.js",
   "dependencies": {
     "fs-extra": "^11.3.2",
-    "puppeteer": "^21.11.0"
+    "puppeteer-core": "^21.11.0"
   },
   "scripts": {
     "start": "node zalo-bot.js",
-    "postinstall": "apt-get update && apt-get install -y wget gnupg ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 libcups2 libdbus-1-3 libgdk-pixbuf2.0-0 libnspr4 libnss3 libx11-xcb1 libxcomposite1 libxdamage1 libxrandr2 xdg-utils"
+    "postinstall": "npm install puppeteer-core"
   },
   "engines": {
     "node": ">=18"
   },
-  "description": "Zalo bot chạy bằng Puppeteer và fs-extra",
+  "description": "Zalo bot chạy bằng Puppeteer Core và fs-extra (build siêu nhanh cho Railway)",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bjo0vj/zalo-bot.git"
   },
-  "keywords": ["zalo", "bot", "puppeteer", "railway"],
+  "keywords": ["zalo", "bot", "puppeteer-core", "railway"],
   "author": "Phát",
   "license": "ISC",
   "bugs": {
