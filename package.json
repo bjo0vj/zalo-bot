@@ -4,21 +4,21 @@
   "main": "zalo-bot.js",
   "dependencies": {
     "fs-extra": "^11.3.2",
-    "puppeteer-core": "^21.11.0"
+    "puppeteer-core": "^21.11.0",
+    "@sparticuz/chromium": "^123.0.0"
   },
   "scripts": {
-    "start": "node zalo-bot.js",
-    "postinstall": "npm install puppeteer-core"
+    "start": "node zalo-bot.js"
   },
   "engines": {
     "node": ">=18"
   },
-  "description": "Zalo bot chạy bằng Puppeteer Core và fs-extra (build siêu nhanh cho Railway)",
+  "description": "Zalo bot chạy bằng Puppeteer-Core và Chromium (tối ưu cho Railway)",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bjo0vj/zalo-bot.git"
   },
-  "keywords": ["zalo", "bot", "puppeteer-core", "railway"],
+  "keywords": ["zalo", "bot", "puppeteer-core", "chromium", "railway"],
   "author": "Phát",
   "license": "ISC",
   "bugs": {

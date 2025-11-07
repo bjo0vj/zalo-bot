@@ -1,4 +1,5 @@
 const puppeteer = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium");
 const fs = require('fs-extra');
 const path = require('path');
 
@@ -35,27 +36,31 @@ function timestampForFile() {
   const state = await loadState();
   const userDataDir = path.join(__dirname, 'chrome-profile');
 
-  // ✅ FIX CHUẨN CHO RAILWAY
+  console.log("🚀 Khởi động trình duyệt Chromium...");
+
+  // ✅ Auto detect môi trường: Railway dùng chromium, local dùng puppeteer
+  const isRailway = process.env.RAILWAY_ENVIRONMENT || process.env.PORT;
+
   const browser = await puppeteer.launch({
-    headless: 'new', // dùng headless chế độ mới
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--no-zygote',
-      '--single-process'
-    ],
-    userDataDir
+    headless: chromium.headless, // luôn chạy headless
+    executablePath: isRailway ? await chromium.executablePath() : undefined,
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    userDataDir,
   });
 
   const [page] = await browser.pages();
   await page.goto('https://chat.zalo.me', { waitUntil: 'networkidle2' });
-  console.log('🤖 Quét QR Zalo lần đầu trên local, sau đó Railway sẽ dùng session đã lưu.');
-  console.log('➡️  Nhấn ENTER khi đã đăng nhập xong để tiếp tục...');
-  await new Promise(resolve => process.stdin.once('data', _ => resolve()));
 
-  // Hàm gửi tin nhắn nhóm
+  if (!isRailway) {
+    console.log('🤖 Quét QR Zalo lần đầu trên local, sau đó Railway sẽ dùng session đã lưu.');
+    console.log('➡️  Nhấn ENTER khi đã đăng nhập xong để tiếp tục...');
+    await new Promise(resolve => process.stdin.once('data', _ => resolve()));
+  } else {
+    console.log("✅ Bot đang chạy trên Railway (headless).");
+  }
+
+  // Gửi tin nhắn nhóm
   async function sendGroupMessage(page, text) {
     await page.evaluate(t => {
       const input = document.querySelector('[contenteditable="true"]');
@@ -64,10 +69,7 @@ function timestampForFile() {
       document.execCommand('insertText', false, t);
       const btn = document.querySelector('button[type="submit"]');
       if (btn) btn.click();
-      else
-        input.dispatchEvent(
-          new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Enter', code: 'Enter' })
-        );
+      else input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Enter', code: 'Enter' }));
     }, text);
   }
 
@@ -78,7 +80,7 @@ function timestampForFile() {
     if (msg.text && msg.text.startsWith('!')) {
       const t = msg.text.trim();
       if (t === '!menu') {
-        await sendGroupMessage(page, 'Lệnh: !menu !setnguoi <số> !start !check !exit');
+        await sendGroupMessage(page, '📜 Lệnh: !menu !setnguoi <số> !start !check !exit');
         return;
       }
       if (t.startsWith('!setnguoi')) {
@@ -87,19 +89,19 @@ function timestampForFile() {
           s.target = n;
           s.last_setnguoi = n;
           await saveState(s);
-          await sendGroupMessage(page, `Đã đặt mục tiêu ${n} người.`);
-        } else await sendGroupMessage(page, 'Cú pháp: !setnguoi <số>');
+          await sendGroupMessage(page, `🎯 Đã đặt mục tiêu ${n} người.`);
+        } else await sendGroupMessage(page, '❌ Cú pháp: !setnguoi <số>');
         return;
       }
       if (t === '!start') {
         s.running = true;
         s.current_submitters = [];
         await saveState(s);
-        await sendGroupMessage(page, `Bắt đầu đếm. Mục tiêu: ${s.target} người.`);
+        await sendGroupMessage(page, `🏁 Bắt đầu đếm. Mục tiêu: ${s.target} người.`);
         return;
       }
       if (t === '!check') {
-        let r = `Đã có ${s.current_submitters.length} người:\n`;
+        let r = `📊 Đã có ${s.current_submitters.length} người:\n`;
         r += s.current_submitters.map(x => x.name).join('\n');
         await sendGroupMessage(page, r);
         return;
@@ -108,23 +110,22 @@ function timestampForFile() {
         s.running = false;
         s.current_submitters = [];
         await saveState(s);
-        await sendGroupMessage(page, `Đã dừng đếm. last_setnguoi=${s.last_setnguoi}`);
+        await sendGroupMessage(page, `🛑 Đã dừng đếm. last_setnguoi=${s.last_setnguoi}`);
         return;
       }
     }
 
-    // Khi bot đang chạy và có hình ảnh
     if (s.running && msg.hasImage) {
       const id = msg.senderId || msg.senderName || ('unknown_' + Math.random());
       if (isUnique(s.current_submitters, id)) {
         s.current_submitters.push({ id, name: msg.senderName || id });
         await saveState(s);
-        await sendGroupMessage(page, `${msg.senderName} đã được ghi nhận (${s.current_submitters.length}/${s.target})`);
+        await sendGroupMessage(page, `✅ ${msg.senderName} đã được ghi nhận (${s.current_submitters.length}/${s.target})`);
       }
       if (s.current_submitters.length >= s.target) {
         const fname = `submissions_${timestampForFile()}.txt`;
         await fs.writeFile(fname, s.current_submitters.map(x => x.name).join('\n'), 'utf8');
-        await sendGroupMessage(page, `Đã đủ người nộp. Lưu vào ${fname}. Bộ đếm reset.`);
+        await sendGroupMessage(page, `🎉 Đã đủ người nộp. Lưu vào ${fname}. Bộ đếm reset.`);
         s.running = false;
         s.current_submitters = [];
         s.target = s.last_setnguoi || s.target;
@@ -133,7 +134,7 @@ function timestampForFile() {
     }
   });
 
-  // Quan sát DOM để phát hiện tin nhắn mới
+  // Quan sát DOM tin nhắn mới
   await page.evaluate(() => {
     function extract(node) {
       let text = '', hasImage = !!node.querySelector('img'), senderName = '';
@@ -157,5 +158,5 @@ function timestampForFile() {
     obs.observe(container, { childList: true, subtree: true });
   });
 
-  console.log('✅ Bot đang chạy! Gõ !menu trong nhóm để kiểm tra.');
+  console.log('🤖 Bot Zalo đã khởi động thành công!');
 })();
