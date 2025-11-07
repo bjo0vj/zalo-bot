@@ -1,6 +1,24 @@
 {
+  "name": "zalo-bot",
+  "version": "1.0.0",
+  "main": "zalo-bot.js",
   "dependencies": {
     "fs-extra": "^11.3.2",
-    "puppeteer": "^24.29.0"
-  }
+    "puppeteer": "^21.11.0"
+  },
+  "scripts": {
+    "start": "node zalo-bot.js"
+  },
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bjo0vj/zalo-bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bjo0vj/zalo-bot/issues"
+  },
+  "homepage": "https://github.com/bjo0vj/zalo-bot#readme"
 }
