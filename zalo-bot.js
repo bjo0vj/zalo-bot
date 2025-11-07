@@ -35,18 +35,27 @@ function timestampForFile() {
   const state = await loadState();
   const userDataDir = path.join(__dirname, 'chrome-profile');
 
+  // ✅ FIX CHUẨN CHO RAILWAY
   const browser = await puppeteer.launch({
-    headless: true, // hiện Chrome để quét QR
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    headless: 'new', // dùng headless chế độ mới
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--no-zygote',
+      '--single-process'
+    ],
     userDataDir
   });
 
   const [page] = await browser.pages();
   await page.goto('https://chat.zalo.me', { waitUntil: 'networkidle2' });
-  console.log('Quét QR Zalo lần đầu, nhấn ENTER khi đăng nhập xong.');
+  console.log('🤖 Quét QR Zalo lần đầu trên local, sau đó Railway sẽ dùng session đã lưu.');
+  console.log('➡️  Nhấn ENTER khi đã đăng nhập xong để tiếp tục...');
   await new Promise(resolve => process.stdin.once('data', _ => resolve()));
 
-  // Gửi tin nhắn nhóm
+  // Hàm gửi tin nhắn nhóm
   async function sendGroupMessage(page, text) {
     await page.evaluate(t => {
       const input = document.querySelector('[contenteditable="true"]');
@@ -55,11 +64,14 @@ function timestampForFile() {
       document.execCommand('insertText', false, t);
       const btn = document.querySelector('button[type="submit"]');
       if (btn) btn.click();
-      else input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Enter', code: 'Enter' }));
+      else
+        input.dispatchEvent(
+          new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Enter', code: 'Enter' })
+        );
     }, text);
   }
 
-  // Lắng nghe tin nhắn
+  // Lắng nghe tin nhắn mới
   await page.exposeFunction('onNewMessage', async msg => {
     const s = await loadState();
 
@@ -101,6 +113,7 @@ function timestampForFile() {
       }
     }
 
+    // Khi bot đang chạy và có hình ảnh
     if (s.running && msg.hasImage) {
       const id = msg.senderId || msg.senderName || ('unknown_' + Math.random());
       if (isUnique(s.current_submitters, id)) {
@@ -120,7 +133,7 @@ function timestampForFile() {
     }
   });
 
-  // Observer DOM Zalo Web
+  // Quan sát DOM để phát hiện tin nhắn mới
   await page.evaluate(() => {
     function extract(node) {
       let text = '', hasImage = !!node.querySelector('img'), senderName = '';
@@ -134,12 +147,15 @@ function timestampForFile() {
       muts.forEach(m => {
         Array.from(m.addedNodes).forEach(n => {
           if (!(n instanceof HTMLElement)) return;
-          setTimeout(() => { const info = extract(n); if (info.hasImage || info.text.startsWith('!')) window.onNewMessage(info); }, 150);
+          setTimeout(() => { 
+            const info = extract(n);
+            if (info.hasImage || info.text.startsWith('!')) window.onNewMessage(info);
+          }, 150);
         });
       });
     });
     obs.observe(container, { childList: true, subtree: true });
   });
 
-  console.log('Bot đang chạy. Gõ !menu trong nhóm.');
+  console.log('✅ Bot đang chạy! Gõ !menu trong nhóm để kiểm tra.');
 })();
