@@ -1,11 +1,13 @@
+# --- Dùng Node 20 trên Debian Bullseye ---
 FROM node:20-bullseye
 
+# Thư mục làm việc trong container
 WORKDIR /app
 
-# Copy file package.json và cài đặt thư viện Chromium cần thiết
+# Sao chép package.json và cài dependencies
 COPY package*.json ./
 
-# Cài các lib hệ thống mà Puppeteer (Chromium) cần để chạy
+# Cài các lib hệ thống Chromium cần để chạy (tránh lỗi “Missing dependency”)
 RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
@@ -45,14 +47,18 @@ RUN apt-get update && apt-get install -y \
     xdg-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Cài npm package (bỏ --production vì gây lỗi lockfile khi chưa sync)
+# Cài các thư viện Node.js (bao gồm Puppeteer-Core, Chromium, Express)
 RUN npm install
 
-# Copy toàn bộ code còn lại
+# Copy toàn bộ mã nguồn vào container
 COPY . .
 
-# Tạo thư mục lưu session Zalo
+# Tạo thư mục lưu cache trình duyệt (để không lỗi “no space”)
 RUN mkdir -p /app/chrome-profile
 
+# Railway yêu cầu process phải mở port => Express handle port này
+ENV PORT=3000
+EXPOSE 3000
+
 # Chạy bot
-CMD ["node", "zalo-bot.js"]
+CMD ["npm", "start"]
